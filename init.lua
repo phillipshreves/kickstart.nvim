@@ -91,7 +91,7 @@ vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
 -- Set to true if you have a Nerd Font installed and selected in the terminal
-vim.g.have_nerd_font = false
+vim.g.have_nerd_font = true
 
 -- [[ Setting options ]]
 -- See `:help vim.o`
@@ -159,7 +159,7 @@ vim.o.inccommand = 'split'
 vim.o.cursorline = true
 
 -- Minimal number of screen lines to keep above and below the cursor.
-vim.o.scrolloff = 10
+vim.o.scrolloff = 5
 
 -- if performing an operation that would fail due to unsaved changes in the buffer (like `:q`),
 -- instead raise a dialog asking if you wish to save the current file(s)
@@ -282,6 +282,17 @@ require('lazy').setup({
         changedelete = { text = '~' },
       },
     },
+  },
+  {
+    'sainnhe/sonokai',
+    lazy = false,
+    priority = 1000,
+    config = function()
+      -- Optionally configure and load the colorscheme
+      -- directly inside the plugin declaration.
+      vim.g.sonokai_enable_italic = true
+      vim.cmd.colorscheme 'sonokai'
+    end,
   },
 
   -- NOTE: Plugins can also be configured to run Lua code when they are loaded.
@@ -412,7 +423,11 @@ require('lazy').setup({
         --     i = { ['<c-enter>'] = 'to_fuzzy_refine' },
         --   },
         -- },
-        -- pickers = {}
+        pickers = {
+          colorscheme = {
+            enable_preview = true,
+          },
+        },
         extensions = {
           ['ui-select'] = {
             require('telescope.themes').get_dropdown(),
@@ -672,18 +687,21 @@ require('lazy').setup({
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
       local servers = {
         -- clangd = {},
-        -- gopls = {},
-        -- pyright = {},
-        -- rust_analyzer = {},
+        gopls = {},
+        pyright = {},
+        rust_analyzer = {},
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
         --
         -- Some languages (like typescript) have entire language plugins that can be useful:
         --    https://github.com/pmizio/typescript-tools.nvim
         --
         -- But for many setups, the LSP (`ts_ls`) will work just fine
-        -- ts_ls = {},
-        --
-
+        ts_ls = {},
+        eslint = {},
+        tailwindcss = {},
+        docker_compose_language_service = {},
+        docker_language_server = {},
+        yamlls = {},
         lua_ls = {
           -- cmd = { ... },
           -- filetypes = { ... },
