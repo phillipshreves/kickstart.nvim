@@ -14,8 +14,9 @@ return {
     { '\\', ':Neotree reveal<CR>', desc = 'NeoTree reveal', silent = true },
   },
   opts = {
-    close_if_last_window = true,
+    close_if_last_window = false,
     filesystem = {
+      follow_current_file = { enabled = true },
       filtered_items = {
         hide_dotfiles = false,
         hide_gitignored = false,

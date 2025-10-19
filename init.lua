@@ -99,14 +99,22 @@ vim.g.have_nerd_font = true
 --  For more options, you can see `:help option-list`
 --
 -- trying to fix indentation
+vim.o.autoindent = true
 vim.o.smartindent = true
-vim.o.shiftround = true
-vim.o.tabstop = 2
+vim.o.expandtab = true -- Use spaces instead of tabs
+vim.o.shiftwidth = 2 -- Size of an indent
+vim.o.tabstop = 2 -- Number of spaces tabs count for
+vim.o.softtabstop = 2 -- Number of spaces tabs count for while editing
+vim.o.shiftround = true -- Round indent to multiple of 'shiftwidth'
 
 -- block folding
-vim.o.foldmethod = 'indent'
+vim.o.foldmethod = 'expr'
 vim.o.foldcolumn = 'auto'
+vim.o.foldlevel = 99
 vim.o.foldlevelstart = 99
+vim.o.foldnestmax = 3
+vim.o.foldenable = true
+vim.o.foldexpr = 'v:lua.vim.lsp.foldexpr()'
 
 -- Make line numbers default
 vim.o.number = true
@@ -257,7 +265,17 @@ rtp:prepend(lazypath)
 -- NOTE: Here is where you install your plugins.
 require('lazy').setup({
   -- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
-  'NMAC427/guess-indent.nvim', -- Detect tabstop and shiftwidth automatically
+  {
+    'NMAC427/guess-indent.nvim',
+    config = function()
+      require('guess-indent').setup {
+        -- Auto detect indentation when opening files
+        auto_cmd = true,
+        -- Override existing settings
+        override_editorconfig = false,
+      }
+    end,
+  },
   -- '',
 
   -- NOTE: Plugins can also be added by using a table,
@@ -686,7 +704,7 @@ require('lazy').setup({
       --  - settings (table): Override the default settings passed when initializing the server.
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
       local servers = {
-        -- clangd = {},
+        clangd = {},
         gopls = {},
         pyright = {},
         rust_analyzer = {},
@@ -1035,6 +1053,9 @@ vim.cmd 'Neotree reveal'
 -- switch back to buffer
 local keyRight = vim.api.nvim_replace_termcodes('<C-l>', true, false, true)
 vim.api.nvim_feedkeys(keyRight, 'm', false)
+
+-- easy toggle for Neotree
+vim.keymap.set('n', '<leader>nt', ':Neotree toggle<CR>', { desc = '[N]eotree [T]oggle' })
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
