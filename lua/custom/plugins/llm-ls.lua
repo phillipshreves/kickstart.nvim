@@ -1,3 +1,5 @@
+local capabilities = vim.lsp.protocol.make_client_capabilities()
+
 return {
   'huggingface/llm.nvim',
   enabled = false,

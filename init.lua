@@ -300,18 +300,18 @@ require('lazy').setup({
   -- options to `gitsigns.nvim`.
   --
   -- See `:help gitsigns` to understand what the configuration keys do
-  { -- Adds git related signs to the gutter, as well as utilities for managing changes
-    'lewis6991/gitsigns.nvim',
-    opts = {
-      signs = {
-        add = { text = '+' },
-        change = { text = '~' },
-        delete = { text = '_' },
-        topdelete = { text = '‾' },
-        changedelete = { text = '~' },
-      },
-    },
-  },
+  --  { -- Adds git related signs to the gutter, as well as utilities for managing changes
+  --    'lewis6991/gitsigns.nvim',
+  --    opts = {
+  --      signs = {
+  --        add = { text = '+' },
+  --        change = { text = '~' },
+  --        delete = { text = '_' },
+  --        topdelete = { text = '‾' },
+  --        changedelete = { text = '~' },
+  --      },
+  --    },
+  --  },
 
   -- NOTE: Plugins can also be configured to run Lua code when they are loaded.
   --
@@ -999,6 +999,354 @@ require('lazy').setup({
     --    - Show your current context: https://github.com/nvim-treesitter/nvim-treesitter-context
     --    - Treesitter + textobjects: https://github.com/nvim-treesitter/nvim-treesitter-textobjects
   },
+  -- kickstart plugins
+
+  -- autopairs
+  -- https://github.com/windwp/nvim-autopairs
+  {
+    'windwp/nvim-autopairs',
+    event = 'InsertEnter',
+    opts = {},
+  },
+
+  -- debug.lua
+  -- Shows how to use the DAP plugin to debug your code.
+  -- Primarily focused on configuring the debugger for Go, but can
+  -- be extended to other languages as well. That's why it's called
+  -- kickstart.nvim and not kitchen-sink.nvim ;)
+  {
+    -- NOTE: Yes, you can install new plugins here!
+    'mfussenegger/nvim-dap',
+    -- NOTE: And you can specify dependencies as well
+    dependencies = {
+      -- Creates a beautiful debugger UI
+      'rcarriga/nvim-dap-ui',
+
+      -- Required dependency for nvim-dap-ui
+      'nvim-neotest/nvim-nio',
+
+      -- Installs the debug adapters for you
+      'mason-org/mason.nvim',
+      'jay-babu/mason-nvim-dap.nvim',
+
+      -- Add your own debuggers here
+      'leoluz/nvim-dap-go',
+    },
+    keys = {
+      -- Basic debugging keymaps, feel free to change to your liking!
+      {
+        '<F5>',
+        function()
+          require('dap').continue()
+        end,
+        desc = 'Debug: Start/Continue',
+      },
+      {
+        '<F1>',
+        function()
+          require('dap').step_into()
+        end,
+        desc = 'Debug: Step Into',
+      },
+      {
+        '<F2>',
+        function()
+          require('dap').step_over()
+        end,
+        desc = 'Debug: Step Over',
+      },
+      {
+        '<F3>',
+        function()
+          require('dap').step_out()
+        end,
+        desc = 'Debug: Step Out',
+      },
+      {
+        '<leader>b',
+        function()
+          require('dap').toggle_breakpoint()
+        end,
+        desc = 'Debug: Toggle Breakpoint',
+      },
+      {
+        '<leader>B',
+        function()
+          require('dap').set_breakpoint(vim.fn.input 'Breakpoint condition: ')
+        end,
+        desc = 'Debug: Set Breakpoint',
+      },
+      -- Toggle to see last session result. Without this, you can't see session output in case of unhandled exception.
+      {
+        '<F7>',
+        function()
+          require('dapui').toggle()
+        end,
+        desc = 'Debug: See last session result.',
+      },
+    },
+    config = function()
+      local dap = require 'dap'
+      local dapui = require 'dapui'
+
+      require('mason-nvim-dap').setup {
+        -- Makes a best effort to setup the various debuggers with
+        -- reasonable debug configurations
+        automatic_installation = true,
+
+        -- You can provide additional configuration to the handlers,
+        -- see mason-nvim-dap README for more information
+        handlers = {},
+
+        -- You'll need to check that you have the required things installed
+        -- online, please don't ask me how to install them :)
+        ensure_installed = {
+          -- Update this to ensure that you have the debuggers for the langs you want
+          'delve',
+        },
+      }
+
+      -- Dap UI setup
+      -- For more information, see |:help nvim-dap-ui|
+      dapui.setup {
+        -- Set icons to characters that are more likely to work in every terminal.
+        --    Feel free to remove or use ones that you like more! :)
+        --    Don't feel like these are good choices.
+        icons = { expanded = '▾', collapsed = '▸', current_frame = '*' },
+        controls = {
+          enabled = true,
+          icons = {
+            pause = '⏸',
+            play = '▶',
+            step_into = '⏎',
+            step_over = '⏭',
+            step_out = '⏮',
+            step_back = 'b',
+            run_last = '▶▶',
+            terminate = '⏹',
+            disconnect = '⏏',
+          },
+        },
+      }
+
+      -- Change breakpoint icons
+      -- vim.api.nvim_set_hl(0, 'DapBreak', { fg = '#e51400' })
+      -- vim.api.nvim_set_hl(0, 'DapStop', { fg = '#ffcc00' })
+      -- local breakpoint_icons = vim.g.have_nerd_font
+      --     and { Breakpoint = '', BreakpointCondition = '', BreakpointRejected = '', LogPoint = '', Stopped = '' }
+      --   or { Breakpoint = '●', BreakpointCondition = '⊜', BreakpointRejected = '⊘', LogPoint = '◆', Stopped = '⭔' }
+      -- for type, icon in pairs(breakpoint_icons) do
+      --   local tp = 'Dap' .. type
+      --   local hl = (type == 'Stopped') and 'DapStop' or 'DapBreak'
+      --   vim.fn.sign_define(tp, { text = icon, texthl = hl, numhl = hl })
+      -- end
+
+      dap.listeners.after.event_initialized['dapui_config'] = dapui.open
+      dap.listeners.before.event_terminated['dapui_config'] = dapui.close
+      dap.listeners.before.event_exited['dapui_config'] = dapui.close
+
+      -- Install golang specific config
+      require('dap-go').setup {
+        delve = {
+          -- On Windows delve must be run attached or it crashes.
+          -- See https://github.com/leoluz/nvim-dap-go/blob/main/README.md#configuring
+          detached = vim.fn.has 'win32' == 0,
+        },
+      }
+    end,
+  },
+
+  -- Adds git related signs to the gutter, as well as utilities for managing changes
+  {
+    {
+      'lewis6991/gitsigns.nvim',
+      opts = {
+        signs = {
+          add = { text = '+' },
+          change = { text = '~' },
+          delete = { text = '_' },
+          topdelete = { text = '‾' },
+          changedelete = { text = '~' },
+        },
+        current_line_blame = true,
+        current_line_blame_opts = {
+          virt_text = true,
+          virt_text_pos = 'eol',
+          delay = 1000,
+          ignore_whitespace = true,
+        },
+        on_attach = function(bufnr)
+          local gitsigns = require 'gitsigns'
+
+          local function map(mode, l, r, opts)
+            opts = opts or {}
+            opts.buffer = bufnr
+            vim.keymap.set(mode, l, r, opts)
+          end
+
+          -- Navigation
+          map('n', ']c', function()
+            if vim.wo.diff then
+              vim.cmd.normal { ']c', bang = true }
+            else
+              gitsigns.nav_hunk 'next'
+            end
+          end, { desc = 'Jump to next git [c]hange' })
+
+          map('n', '[c', function()
+            if vim.wo.diff then
+              vim.cmd.normal { '[c', bang = true }
+            else
+              gitsigns.nav_hunk 'prev'
+            end
+          end, { desc = 'Jump to previous git [c]hange' })
+
+          -- Actions
+          -- visual mode
+          map('v', '<leader>hs', function()
+            gitsigns.stage_hunk { vim.fn.line '.', vim.fn.line 'v' }
+          end, { desc = 'git [s]tage hunk' })
+          map('v', '<leader>hr', function()
+            gitsigns.reset_hunk { vim.fn.line '.', vim.fn.line 'v' }
+          end, { desc = 'git [r]eset hunk' })
+          -- normal mode
+          map('n', '<leader>hs', gitsigns.stage_hunk, { desc = 'git [s]tage hunk' })
+          map('n', '<leader>hr', gitsigns.reset_hunk, { desc = 'git [r]eset hunk' })
+          map('n', '<leader>hS', gitsigns.stage_buffer, { desc = 'git [S]tage buffer' })
+          map('n', '<leader>hu', gitsigns.stage_hunk, { desc = 'git [u]ndo stage hunk' })
+          map('n', '<leader>hR', gitsigns.reset_buffer, { desc = 'git [R]eset buffer' })
+          map('n', '<leader>hp', gitsigns.preview_hunk, { desc = 'git [p]review hunk' })
+          map('n', '<leader>hb', gitsigns.blame_line, { desc = 'git [b]lame line' })
+          map('n', '<leader>hd', gitsigns.diffthis, { desc = 'git [d]iff against index' })
+          map('n', '<leader>hD', function()
+            gitsigns.diffthis '@'
+          end, { desc = 'git [D]iff against last commit' })
+          -- Toggles
+          map('n', '<leader>tb', gitsigns.toggle_current_line_blame, { desc = '[T]oggle git show [b]lame line' })
+          map('n', '<leader>tD', gitsigns.preview_hunk_inline, { desc = '[T]oggle git show [D]eleted' })
+        end,
+      },
+    },
+  },
+  {
+    { -- Add indentation guides even on blank lines
+      'lukas-reineke/indent-blankline.nvim',
+      -- Enable `lukas-reineke/indent-blankline.nvim`
+      -- See `:help ibl`
+      main = 'ibl',
+      opts = {},
+    },
+  },
+
+  -- Neo-tree is a Neovim plugin to browse the file system
+  -- https://github.com/nvim-neo-tree/neo-tree.nvim
+  {
+    'nvim-neo-tree/neo-tree.nvim',
+    version = '*',
+    dependencies = {
+      'nvim-lua/plenary.nvim',
+      'nvim-tree/nvim-web-devicons', -- not strictly required, but recommended
+      'MunifTanjim/nui.nvim',
+    },
+    lazy = false,
+    keys = {
+      { '\\', ':Neotree reveal<CR>', desc = 'NeoTree reveal', silent = true },
+    },
+    opts = {
+      close_if_last_window = true,
+      filesystem = {
+        follow_current_file = { enabled = true },
+        filtered_items = {
+          hide_dotfiles = false,
+          hide_gitignored = false,
+          hide_ignored = false,
+          visible = true,
+        },
+        window = {
+          mappings = {
+            ['\\'] = 'close_window',
+          },
+        },
+      },
+      enable_git_status = true,
+    },
+  },
+
+  -- Personal plugins
+  { 'akinsho/bufferline.nvim', version = '*', dependencies = 'nvim-tree/nvim-web-devicons' },
+  {
+    'zbirenbaum/copilot.lua',
+    cmd = 'Copilot',
+    build = ':Copilot auth',
+    event = 'BufReadPost',
+    opts = {
+      suggestion = {
+        enabled = not vim.g.ai_cmp,
+        auto_trigger = true,
+        hide_during_completion = vim.g.ai_cmp,
+        keymap = {
+          accept = '<Tab>',
+          next = '<M-]>',
+          prev = '<M-[>',
+        },
+      },
+      panel = { enabled = false },
+      filetypes = {
+        markdown = true,
+        help = true,
+      },
+    },
+  },
+  {
+    'sainnhe/sonokai',
+    lazy = false,
+    priority = 1000,
+    config = function()
+      -- Optionally configure and load the colorscheme
+      -- directly inside the plugin declaration.
+      vim.g.sonokai_current_word = 'high contrast background'
+      vim.g.sonokai_enable_italic = true
+      --vim.g.sonokai_style = 'atlantis'
+      vim.cmd.colorscheme 'sonokai'
+    end,
+  },
+  {
+    'folke/trouble.nvim',
+    opts = {}, -- for default options, refer to the configuration section for custom setup.
+    cmd = 'Trouble',
+    keys = {
+      {
+        '<leader>xx',
+        '<cmd>Trouble diagnostics toggle<cr>',
+        desc = 'Diagnostics (Trouble)',
+      },
+      {
+        '<leader>xX',
+        '<cmd>Trouble diagnostics toggle filter.buf=0<cr>',
+        desc = 'Buffer Diagnostics (Trouble)',
+      },
+      {
+        '<leader>cs',
+        '<cmd>Trouble symbols toggle focus=false<cr>',
+        desc = 'Symbols (Trouble)',
+      },
+      {
+        '<leader>cl',
+        '<cmd>Trouble lsp toggle focus=false win.position=right<cr>',
+        desc = 'LSP Definitions / references / ... (Trouble)',
+      },
+      {
+        '<leader>xL',
+        '<cmd>Trouble loclist toggle<cr>',
+        desc = 'Location List (Trouble)',
+      },
+      {
+        '<leader>xQ',
+        '<cmd>Trouble qflist toggle<cr>',
+        desc = 'Quickfix List (Trouble)',
+      },
+    },
+  },
 
   -- The following comments only work if you have downloaded the kickstart repo, not just copy pasted the
   -- init.lua. If you want these files, they are in the repository, so you can just download them and
@@ -1009,18 +1357,18 @@ require('lazy').setup({
   --  Here are some example plugins that I've included in the Kickstart repository.
   --  Uncomment any of the lines below to enable them (you will need to restart nvim).
   --
-  require 'kickstart.plugins.debug',
-  require 'kickstart.plugins.indent_line',
+  -- require 'kickstart.plugins.debug',
+  -- require 'kickstart.plugins.indent_line',
   -- require 'kickstart.plugins.lint',
-  require 'kickstart.plugins.autopairs',
-  require 'kickstart.plugins.neo-tree',
-  require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
+  -- require 'kickstart.plugins.autopairs',
+  -- require 'kickstart.plugins.neo-tree',
+  -- require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
 
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --    This is the easiest way to modularize your config.
   --
   --  Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
-  { import = 'custom.plugins' },
+  -- { import = 'custom.plugins' },
   --
   -- For additional information with loading, sourcing and examples see `:help lazy.nvim-🔌-plugin-spec`
   -- Or use telescope!
