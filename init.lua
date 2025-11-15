@@ -886,7 +886,20 @@ require('lazy').setup({
       completion = {
         -- By default, you may press `<c-space>` to show the documentation.
         -- Optionally, set `auto_show = true` to show the documentation after a delay.
-        documentation = { auto_show = false, auto_show_delay_ms = 500 },
+        documentation = { auto_show = true, auto_show_delay_ms = 100 },
+        keyword = { range = 'full' },
+        menu = {
+          draw = {
+            columns = {
+              { 'label', 'label_description', gap = 2 },
+              { 'kind_icon', 'kind', gap = 1 },
+            },
+          },
+        },
+        trigger = {
+          show_on_insert = true,
+          show_on_backspace = true,
+        },
       },
 
       sources = {
@@ -908,7 +921,14 @@ require('lazy').setup({
       fuzzy = { implementation = 'lua' },
 
       -- Shows a signature help window while you type arguments for a function
-      signature = { enabled = true },
+      signature = {
+        enabled = true,
+        trigger = {
+          enabled = true,
+          show_on_insert = true,
+          show_on_keyword = true,
+        },
+      },
     },
   },
 
