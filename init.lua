@@ -101,7 +101,6 @@ vim.g.have_nerd_font = true
 -- trying to fix indentation
 vim.o.autoindent = true
 vim.o.smartindent = true
-vim.o.expandtab = true -- Use spaces instead of tabs
 vim.o.shiftwidth = 2 -- Size of an indent
 vim.o.tabstop = 2 -- Number of spaces tabs count for
 vim.o.softtabstop = 2 -- Number of spaces tabs count for while editing
@@ -1305,7 +1304,7 @@ require('lazy').setup({
         auto_trigger = true,
         hide_during_completion = vim.g.ai_cmp,
         keymap = {
-          accept = '<Tab>',
+          accept = '<C-l>',
           next = '<M-]>',
           prev = '<M-[>',
         },
@@ -1424,6 +1423,15 @@ vim.api.nvim_feedkeys(keyRight, 'm', false)
 
 -- easy toggle for Neotree
 vim.keymap.set('n', '<leader>nt', ':Neotree toggle<CR>', { desc = '[N]eotree [T]oggle' })
+
+-- keep cursor centered when searching
+vim.keymap.set('n', 'n', 'nzzzv')
+vim.keymap.set('n', 'N', 'Nzzzv')
+
+-- paste over currently selected text without yanking it
+vim.keymap.set('x', '<leader>p', '"_dP')
+-- delete without yanking
+vim.keymap.set('x', '<leader>d', '"_d')
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
