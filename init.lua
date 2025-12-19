@@ -12,6 +12,17 @@
     which is very useful when you're not exactly sure of what you're looking for.
 
   Run :Tutor to get started with the built-in Neovim tutor.
+
+  See https://learnxinyminutes.com/lua/ for a brief introduction to Lua.
+
+  Useful help topics for configuration:
+    - `:help lua-guide`
+    - `:help vim.keymap.set()`
+    - `:help vim.api.nvim_set_option()`
+    - `:help vim.api.nvim_set_keymap()`
+    - `:help vim.api.nvim_create_autocmd()`
+    - `:help vim.api.nvim_create_augroup()`
+    - `:help lazy.nvim.txt` (the plugin manager used in this config)
 --]]
 
 -- Set <space> as the leader key
