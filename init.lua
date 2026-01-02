@@ -75,6 +75,16 @@ vim.o.showmode = false
 vim.schedule(function()
   vim.o.clipboard = 'unnamedplus'
 end)
+-- Delete without yanking (prevents system clipboard overwrite)
+vim.keymap.set({ 'n', 'v' }, 'd', '"_d', { noremap = true, silent = true })
+-- Do the same for Line delete
+vim.keymap.set('n', 'dd', '"_dd', { noremap = true, silent = true })
+-- Do the same for character delete
+vim.keymap.set({ 'n', 'v' }, 'x', '"_x', { noremap = true, silent = true })
+-- Do the same for change
+vim.keymap.set({ 'n', 'v' }, 'c', '"_c', { noremap = true, silent = true })
+-- Do the same for Line change
+vim.keymap.set('n', 'cc', '"_cc', { noremap = true, silent = true })
 
 -- Enable break indent
 vim.o.breakindent = true
