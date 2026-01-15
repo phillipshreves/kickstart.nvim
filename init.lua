@@ -574,7 +574,7 @@ require('lazy').setup({
           --
           -- When you move your cursor, the highlights will be cleared (the second autocommand).
           local client = vim.lsp.get_client_by_id(event.data.client_id)
-          if client and client_supports_method(client, vim.lsp.protocol.Methods.textDocument_documentHighlight, event.buf) then
+          if client and client_supports_method(client, 'textDocument/documentHighlight', event.buf) then
             local highlight_augroup = vim.api.nvim_create_augroup('kickstart-lsp-highlight', { clear = false })
             vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
               buffer = event.buf,
@@ -1079,12 +1079,28 @@ require('lazy').setup({
       -- Dap UI setup
       -- For more information, see |:help nvim-dap-ui|
       dapui.setup {
-        -- Set icons to characters that are more likely to work in every terminal.
-        --    Feel free to remove or use ones that you like more! :)
-        --    Don't feel like these are good choices.
+        layouts = {
+          {
+            elements = { 'scopes', 'breakpoints', 'stacks', 'watches' },
+            size = 40,
+            position = 'left',
+          },
+          {
+            elements = { 'repl' },
+            size = 10,
+            position = 'bottom',
+          },
+        },
+        floating = {
+          max_height = 0.3,
+          max_width = 0.3,
+          border = 'rounded',
+          mappings = { close = { 'q', '<Esc>' } },
+        },
         icons = { expanded = '▾', collapsed = '▸', current_frame = '*' },
         controls = {
           enabled = true,
+          element = 'repl',
           icons = {
             pause = '⏸',
             play = '▶',
@@ -1096,6 +1112,25 @@ require('lazy').setup({
             terminate = '⏹',
             disconnect = '⏏',
           },
+        },
+        mappings = {
+          expand = { '<CR>', '<2-LeftMouse>' },
+          open = 'o',
+          remove = 'd',
+          edit = 'e',
+          repl = 'r',
+        },
+        element_mappings = {
+          scopes = {
+            expand = { '<CR>', '<2-LeftMouse>' },
+          },
+        },
+        expand_lines = true,
+        force_buffers = true,
+        render = {
+          max_type_length = nil,
+          max_value_lines = 100,
+          indent = 2,
         },
       }
 
@@ -1318,6 +1353,35 @@ require('lazy').setup({
     },
   },
 
+  {
+    'folke/todo-comments.nvim',
+    dependencies = { 'nvim-lua/plenary.nvim' },
+    opts = {
+      keywords = {
+        FIX = {
+          icon = ' ', -- icon used for the sign, and in search results
+          color = 'error', -- can be a hex color, or a named color (see below)
+          alt = { 'FIXME', 'BUG', 'FIXIT', 'ISSUE' }, -- a set of other keywords that all map to this FIX keywords
+          -- signs = false, -- configure signs for some keywords individually
+        },
+        TODO = { icon = ' ', color = 'info' },
+        HACK = { icon = ' ', color = 'warning' },
+        WARN = { icon = ' ', color = 'warning', alt = { 'WARNING', 'XXX' } },
+        PERF = { icon = ' ', alt = { 'OPTIM', 'PERFORMANCE', 'OPTIMIZE' } },
+        NOTE = { icon = ' ', color = 'hint', alt = { 'INFO' } },
+        TEST = { icon = '⏲ ', color = 'test', alt = { 'TESTING', 'PASSED', 'FAILED' } },
+      },
+    },
+
+    {
+      'lukas-reineke/indent-blankline.nvim',
+      main = 'ibl',
+      ---@module "ibl"
+      ---@type ibl.config
+      opts = {},
+    },
+  },
+
   -- The following comments only work if you have downloaded the kickstart repo, not just copy pasted the
   -- init.lua. If you want these files, they are in the repository, so you can just download them and
   -- place them in the correct locations.
@@ -1366,6 +1430,46 @@ require('lazy').setup({
   },
 })
 
+-- Custom LSP config for ESP Clangd
+local util = require 'lspconfig.util'
+local esp_clangd = '/Users/phil/.espressif/tools/esp-clang/esp-19.1.2_20250312/esp-clang/bin/clangd'
+local function is_esp_project(fname)
+  return util.root_pattern 'sdkconfig'(fname) ~= nil
+end
+local clangd_common = {
+  -- Provides fast “go to definition,” “find references,” and cross-file intelligence.
+  '--background-index',
+  -- Runs clang-tidy checks and surfaces them as diagnostics in your editor.
+  '--clang-tidy',
+  -- Limits clangd to using n background worker threads.
+  '-j=8',
+  -- Use the LLVM coding style as a fallback when no .clang-format is found in a project.
+  '--fallback-style=llvm',
+  -- Includes symbols from all visible scopes in completion results, see more suggestions, including ones not yet in scope. Helps discover APIs but can feel noisy
+  '--all-scopes-completion',
+  -- Provides rich completion items, including: Function signatures, Return types, Template parameters
+  '--completion-style=detailed',
+  -- Enables automatic insertion of #include directives for code completion.
+  '--header-insertion=iwyu',
+  -- Adds comments next to auto-inserted includes.
+  '--header-insertion-decorators',
+  -- Use memory for storing precompiled headers to improve performance.
+  '--pch-storage=memory',
+}
+
+vim.lsp.config.clangd = {
+  cmd = is_esp_project(vim.api.nvim_buf_get_name(0)) and { esp_clangd, unpack(clangd_common) } or { 'clangd', unpack(clangd_common) },
+  filetypes = { 'c', 'cpp', 'objc', 'objcpp', 'cuda', 'proto' },
+  root_markers = {
+    '.clangd',
+    'compile_commands.json',
+    'sdkconfig',
+    '.git',
+  },
+  capabilities = vim.lsp.protocol.make_client_capabilities(),
+}
+vim.lsp.enable 'clangd'
+
 -- open neo-tree on startup
 vim.cmd 'Neotree reveal'
 -- switch back to buffer
@@ -1386,3 +1490,25 @@ vim.keymap.set('x', '<leader>d', '"_d')
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
+
+-- Custom indent-blankline colors
+local highlight = {
+  'RainbowRed',
+  'RainbowOrange',
+  'RainbowYellow',
+  'RainbowGreen',
+  'RainbowBlue',
+  'RainbowViolet',
+}
+local hooks = require 'ibl.hooks'
+-- create the highlight groups in the highlight setup hook, so they are reset
+-- every time the colorscheme changes
+hooks.register(hooks.type.HIGHLIGHT_SETUP, function()
+  vim.api.nvim_set_hl(0, 'RainbowRed', { fg = '#FC5D7C' })
+  vim.api.nvim_set_hl(0, 'RainbowOrange', { fg = '#F39660' })
+  vim.api.nvim_set_hl(0, 'RainbowYellow', { fg = '#E7C664' })
+  vim.api.nvim_set_hl(0, 'RainbowGreen', { fg = '#9ED072' })
+  vim.api.nvim_set_hl(0, 'RainbowBlue', { fg = '#76CCE0' })
+  vim.api.nvim_set_hl(0, 'RainbowViolet', { fg = '#B39DF3' })
+end)
+require('ibl').setup { indent = { highlight = highlight } }
