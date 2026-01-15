@@ -636,6 +636,7 @@ require('lazy').setup({
             return diagnostic_message[diagnostic.severity]
           end,
         },
+        virtual_lines = true,
       }
 
       -- LSP servers and clients are able to communicate to each other what features they support.
