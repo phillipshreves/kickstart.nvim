@@ -1271,6 +1271,7 @@ require('lazy').setup({
         window = {
           mappings = {
             ['\\'] = 'close_window',
+            ['Z'] = 'expand_all_nodes',
           },
         },
       },
