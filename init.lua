@@ -553,7 +553,7 @@ require('lazy').setup({
           -- Jump to the type of the word under your cursor.
           --  Useful when you're not sure what type a variable is and you want to see
           --  the definition of its *type*, not where it was *defined*.
-          map('<leader>gtd', require('telescope.builtin').lsp_type_definitions, '[g]oto [t]ype [d]efinition')
+          map('<leader>cgtd', require('telescope.builtin').lsp_type_definitions, '[g]oto [t]ype [d]efinition')
 
           -- This function resolves a difference between neovim nightly (version 0.11) and stable (version 0.10)
           ---@param client vim.lsp.Client
@@ -636,7 +636,7 @@ require('lazy').setup({
             return diagnostic_message[diagnostic.severity]
           end,
         },
-        virtual_lines = true,
+        virtual_lines = false,
       }
 
       -- LSP servers and clients are able to communicate to each other what features they support.
@@ -1465,7 +1465,6 @@ vim.lsp.config.clangd = {
     '.clangd',
     'compile_commands.json',
     'sdkconfig',
-    '.git',
   },
   capabilities = vim.lsp.protocol.make_client_capabilities(),
 }
