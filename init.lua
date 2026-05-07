@@ -636,6 +636,7 @@ require('lazy').setup({
             return diagnostic_message[diagnostic.severity]
           end,
         },
+        -- virtual_lines = true: Add show trouble in virtual lines between lines of code
         virtual_lines = false,
       }
 
