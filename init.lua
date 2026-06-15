@@ -442,6 +442,13 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>sn', function()
         builtin.find_files { cwd = vim.fn.stdpath 'config' }
       end, { desc = '[S]earch [N]eovim files' })
+
+      -- git
+      vim.keymap.set('n', '<leader>gst', builtin.git_status, { desc = '[G]it [St]atus' })
+      vim.keymap.set('n', '<leader>gco', builtin.git_commits, { desc = '[G]it [Co]mmits' })
+      vim.keymap.set('n', '<leader>gcb', builtin.git_bcommits, { desc = '[G]it [C]ommits [B]uffer' })
+      vim.keymap.set('n', '<leader>gbr', builtin.git_branches, { desc = '[G]it [Br]anches' })
+      vim.keymap.set('n', '<leader>gsh', builtin.git_stash, { desc = '[G]it [S]tas[h]' })
     end,
   },
 
@@ -1391,27 +1398,6 @@ require('lazy').setup({
     },
   },
 
-  -- The following comments only work if you have downloaded the kickstart repo, not just copy pasted the
-  -- init.lua. If you want these files, they are in the repository, so you can just download them and
-  -- place them in the correct locations.
-
-  -- NOTE: Next step on your Neovim journey: Add/Configure additional plugins for Kickstart
-  --
-  --  Here are some example plugins that I've included in the Kickstart repository.
-  --  Uncomment any of the lines below to enable them (you will need to restart nvim).
-  --
-  -- require 'kickstart.plugins.debug',
-  -- require 'kickstart.plugins.indent_line',
-  -- require 'kickstart.plugins.lint',
-  -- require 'kickstart.plugins.autopairs',
-  -- require 'kickstart.plugins.neo-tree',
-  -- require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps
-
-  -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
-  --    This is the easiest way to modularize your config.
-  --
-  --  Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
-  -- { import = 'custom.plugins' },
   --
   -- For additional information with loading, sourcing and examples see `:help lazy.nvim-🔌-plugin-spec`
   -- Or use telescope!
@@ -1437,6 +1423,9 @@ require('lazy').setup({
       lazy = '💤 ',
     },
   },
+}, {
+  'stevearc/conform.nvim',
+  opts = {},
 })
 
 -- Custom LSP config for ESP Clangd
@@ -1520,3 +1509,36 @@ hooks.register(hooks.type.HIGHLIGHT_SETUP, function()
   vim.api.nvim_set_hl(0, 'RainbowViolet', { fg = '#B39DF3' })
 end)
 require('ibl').setup { indent = { highlight = highlight } }
+
+require('conform').setup {
+  format_on_save = function(bufnr)
+    -- Disable "format_on_save lsp_fallback" for languages that don't
+    -- have a well standardized coding style. You can add additional
+    -- languages here or re-enable it for the disabled ones.
+    local disable_filetypes = { cpp = true }
+    if disable_filetypes[vim.bo[bufnr].filetype] then
+      return nil
+    else
+      return {
+        timeout_ms = 500,
+        lsp_format = 'fallback',
+      }
+    end
+  end,
+  default_format_opts = {
+    -- lsp_format = 'fallback',
+    lsp_format = 'prettier',
+  },
+  formatters_by_ft = {
+    -- List formatters in order of priority, stop_after_first = true ensures it runs Prettier first
+    javascript = { 'prettierd', 'prettier', stop_after_first = true },
+    typescript = { 'prettierd', 'prettier', stop_after_first = true },
+    javascriptreact = { 'prettierd', 'prettier', stop_after_first = true },
+    typescriptreact = { 'prettierd', 'prettier', stop_after_first = true },
+    json = { 'prettier' },
+    yaml = { 'prettier' },
+    markdown = { 'prettier' },
+    css = { 'prettier' },
+    html = { 'prettier' },
+  },
+}
