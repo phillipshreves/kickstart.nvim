@@ -187,6 +187,42 @@ vim.api.nvim_create_autocmd('TextYankPost', {
   end,
 })
 
+-- [[ Big file handling ]]
+-- Mark large files before they're read
+vim.api.nvim_create_autocmd('BufReadPre', {
+  desc = 'Mark big files',
+  group = vim.api.nvim_create_augroup('bigfile-detect', { clear = true }),
+  callback = function(args)
+    local ok, stats = pcall(vim.uv.fs_stat, vim.api.nvim_buf_get_name(args.buf))
+    local largeFileSizeRequirement = 1024 * 512
+    if ok and stats and stats.size > largeFileSizeRequirement then
+      vim.b[args.buf].bigfile = true
+
+      -- Defer the foldmethod change until the buffer is actually loaded
+      vim.api.nvim_create_autocmd('BufReadPost', {
+        buffer = args.buf,
+        once = true,
+        callback = function()
+          vim.opt_local.foldmethod = 'manual'
+          vim.opt_local.foldexpr = ''
+        end,
+      })
+    end
+  end,
+})
+-- Detach LSP clients from big files
+vim.api.nvim_create_autocmd('LspAttach', {
+  desc = 'Detach LSP from big files',
+  group = vim.api.nvim_create_augroup('bigfile-lsp', { clear = true }),
+  callback = function(args)
+    if vim.b[args.buf].bigfile then
+      vim.schedule(function()
+        vim.lsp.buf_detach_client(args.buf, args.data.client_id)
+      end)
+    end
+  end,
+})
+
 -- [[ Install `lazy.nvim` plugin manager ]]
 --    See `:help lazy.nvim.txt` or https://github.com/folke/lazy.nvim for more info
 local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
@@ -1327,6 +1363,9 @@ require('lazy').setup({
       -- directly inside the plugin declaration.
       vim.g.sonokai_current_word = 'high contrast background'
       vim.g.sonokai_enable_italic = true
+      --vim.g.sonokai_diagnostic_text_highlight = true
+      --vim.g.sonokai_diagnostic_line_highlight = true
+      vim.g.have_nerd_font = true
       --vim.g.sonokai_style = 'atlantis'
       vim.cmd.colorscheme 'sonokai'
     end,
@@ -1387,14 +1426,6 @@ require('lazy').setup({
         NOTE = { icon = ' ', color = 'hint', alt = { 'INFO' } },
         TEST = { icon = '⏲ ', color = 'test', alt = { 'TESTING', 'PASSED', 'FAILED' } },
       },
-    },
-
-    {
-      'lukas-reineke/indent-blankline.nvim',
-      main = 'ibl',
-      ---@module "ibl"
-      ---@type ibl.config
-      opts = {},
     },
   },
 
