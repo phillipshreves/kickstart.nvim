@@ -197,20 +197,10 @@ vim.api.nvim_create_autocmd('BufReadPre', {
     local largeFileSizeRequirement = 1024 * 512
     if ok and stats and stats.size > largeFileSizeRequirement then
       vim.b[args.buf].bigfile = true
-
-      -- Defer the foldmethod change until the buffer is actually loaded
-      vim.api.nvim_create_autocmd('BufReadPost', {
-        buffer = args.buf,
-        once = true,
-        callback = function()
-          vim.opt_local.foldmethod = 'manual'
-          vim.opt_local.foldexpr = ''
-        end,
-      })
     end
   end,
 })
--- Detach LSP clients from big files
+-- Detach LSP clients
 vim.api.nvim_create_autocmd('LspAttach', {
   desc = 'Detach LSP from big files',
   group = vim.api.nvim_create_augroup('bigfile-lsp', { clear = true }),
@@ -222,6 +212,17 @@ vim.api.nvim_create_autocmd('LspAttach', {
     end
   end,
 })
+-- Disable folding
+vim.api.nvim_create_autocmd('BufWinEnter', {
+  group = vim.api.nvim_create_augroup('bigfile-folds', { clear = true }),
+  callback = function(args)
+    if vim.b[args.buf].bigfile then
+      vim.opt_local.foldmethod = 'manual'
+      vim.opt_local.foldexpr = ''
+    end
+  end,
+})
+-- End big file handling
 
 -- [[ Install `lazy.nvim` plugin manager ]]
 --    See `:help lazy.nvim.txt` or https://github.com/folke/lazy.nvim for more info
