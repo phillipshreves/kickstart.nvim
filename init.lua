@@ -252,6 +252,9 @@ local clangd_flags = {
   '--pch-storage=memory',
 }
 
+-- Format while typing
+-- vim.lsp.on_type_formatting.enable()
+
 -- Server list. Empty table = use nvim-lspconfig defaults as-is.
 -- Anything you put in a server's table is merged over the defaults.
 local servers = {
@@ -670,20 +673,12 @@ require('lazy').setup({
       },
     },
     opts = {
-      notify_on_error = false,
+      -- notify_on_error = false,
       format_on_save = function(bufnr)
-        -- Disable "format_on_save lsp_fallback" for languages that don't
-        -- have a well standardized coding style. You can add additional
-        -- languages here or re-enable it for the disabled ones.
-        local disable_filetypes = { c = true, cpp = true }
-        if disable_filetypes[vim.bo[bufnr].filetype] then
-          return nil
-        else
-          return {
-            timeout_ms = 500,
-            lsp_format = 'fallback',
-          }
-        end
+        return {
+          timeout_ms = 2000,
+          lsp_format = 'fallback',
+        }
       end,
       default_format_opts = {
         lsp_format = 'fallback',
@@ -691,11 +686,13 @@ require('lazy').setup({
       formatters_by_ft = {
         lua = { 'stylua' },
         -- List formatters in order of priority, stop_after_first = true ensures it runs the first available
-        javascript = { 'prettierd', 'prettier', stop_after_first = true },
         typescript = { 'prettierd', 'prettier', stop_after_first = true },
-        javascriptreact = { 'prettierd', 'prettier', stop_after_first = true },
+        javascript = { 'prettierd', 'prettier', stop_after_first = true },
         typescriptreact = { 'prettierd', 'prettier', stop_after_first = true },
+        javascriptreact = { 'prettierd', 'prettier', stop_after_first = true },
         json = { 'prettier' },
+        c = { 'clang_format' },
+        cpp = { 'clang_format' },
         yaml = { 'prettier' },
         markdown = { 'prettier' },
         css = { 'prettier' },
@@ -755,10 +752,14 @@ require('lazy').setup({
 
       completion = {
         -- By default, you may press `<c-space>` to show the documentation.
-        -- Optionally, set `auto_show = true` to show the documentation after a delay.
-        documentation = { auto_show = true, auto_show_delay_ms = 100 },
+        accept = {
+          resolve_timeout_ms = 500,
+        },
+        documentation = { auto_show = true, auto_show_delay_ms = 10, update_delay_ms = 50 },
         keyword = { range = 'full' },
         menu = {
+          min_width = 20,
+          max_height = 30,
           draw = {
             columns = {
               { 'label', 'label_description', gap = 2 },
@@ -773,8 +774,9 @@ require('lazy').setup({
       },
 
       sources = {
-        default = { 'lsp', 'path', 'snippets', 'lazydev' },
+        default = { 'lsp', 'path', 'snippets', 'buffer', 'lazydev' },
         providers = {
+          lsp = {},
           lazydev = { module = 'lazydev.integrations.blink', score_offset = 100 },
         },
       },
@@ -783,7 +785,7 @@ require('lazy').setup({
 
       -- Blink.cmp includes an optional, recommended rust fuzzy matcher,
       -- which automatically downloads a prebuilt binary when enabled.
-      fuzzy = { implementation = 'lua' },
+      fuzzy = { implementation = 'prefer_rust' },
 
       -- Shows a signature help window while you type arguments for a function
       signature = {
@@ -793,6 +795,12 @@ require('lazy').setup({
           show_on_insert = true,
           show_on_keyword = true,
         },
+        window = {
+          max_height = 20,
+        },
+      },
+      term = {
+        enabled = true,
       },
     },
   },
@@ -1210,12 +1218,12 @@ require('lazy').setup({
         desc = 'Buffer Diagnostics (Trouble)',
       },
       {
-        '<leader>cs',
+        '<leader>xs',
         '<cmd>Trouble symbols toggle focus=false<cr>',
         desc = 'Symbols (Trouble)',
       },
       {
-        '<leader>cl',
+        '<leader>xl',
         '<cmd>Trouble lsp toggle focus=false win.position=right<cr>',
         desc = 'LSP Definitions / references / ... (Trouble)',
       },
@@ -1264,3 +1272,7 @@ vim.keymap.set('n', '<leader>nt', ':Neotree toggle<CR>', { desc = '[N]eotree [T]
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
+
+-- Codelens doesn't seem to be working as well as the Trouble plugin, so I disabled it for now. It may be useful in the future.
+vim.lsp.codelens.enable(true)
+-- vim.keymap.set('n', '<leader>cl', vim.lsp.codelens.run, { desc = 'Run [c]ode[l]ens Action' })
