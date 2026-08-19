@@ -134,6 +134,9 @@ vim.o.scrolloff = 5
 -- See `:help 'confirm'`
 vim.o.confirm = true
 
+-- Show relative line numbers. Turn off with ":set norelativenumber"
+vim.wo.relativenumber = true
+
 -- [[ Basic Keymaps ]]
 --  See `:help vim.keymap.set()`
 
