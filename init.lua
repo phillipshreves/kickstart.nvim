@@ -1140,7 +1140,7 @@ require('lazy').setup({
       { '\\', ':Neotree reveal<CR>', desc = 'NeoTree reveal', silent = true },
     },
     opts = {
-      close_if_last_window = true,
+      close_if_last_window = false,
       filesystem = {
         follow_current_file = { enabled = true },
         filtered_items = {
@@ -1158,6 +1158,37 @@ require('lazy').setup({
       },
       enable_git_status = true,
     },
+
+    config = function(_, opts)
+      require('neo-tree').setup(opts)
+
+      -- Quit when neo-tree is the last window, without the modified-buffer warning.
+      -- This is necessary because the `close_if_last_window` option throws an error bug when the last buffer is modified.
+      vim.api.nvim_create_autocmd('WinClosed', {
+        group = vim.api.nvim_create_augroup('NeoTreeQuitAnyway', { clear = true }),
+        callback = function(args)
+          local closing = tonumber(args.match)
+          local others = vim.tbl_filter(function(w)
+            return w ~= closing and vim.api.nvim_win_get_config(w).relative == ''
+          end, vim.api.nvim_tabpage_list_wins(0))
+
+          if #others ~= 1 then
+            return
+          end
+          local buf = vim.api.nvim_win_get_buf(others[1])
+          if vim.bo[buf].filetype ~= 'neo-tree' then
+            return
+          end
+          if vim.b[buf].neo_tree_position == 'current' then
+            return
+          end
+
+          vim.schedule(function()
+            vim.cmd 'q!'
+          end)
+        end,
+      })
+    end,
   },
 
   -- Personal plugins
