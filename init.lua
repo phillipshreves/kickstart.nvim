@@ -324,7 +324,7 @@ rtp:prepend(lazypath)
 --  To update plugins you can run
 --    :Lazy update
 --
-require('lazy').setup({
+require('lazy').setup {
   {
     'NMAC427/guess-indent.nvim',
     opts = {
@@ -440,7 +440,7 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>/w', builtin.grep_string, { desc = 'Search current [W]ord' })
       vim.keymap.set('n', '<leader>/g', builtin.live_grep, { desc = 'Search by [G]rep' })
       vim.keymap.set('n', '<leader>/d', builtin.diagnostics, { desc = 'Search [D]iagnostics' })
-      vim.keymap.set('n', '<leader>/r', builtin.resume, { desc = 'Search [R]esume' })
+      vim.keymap.set('n', '<leader>/R', builtin.resume, { desc = 'Search [R]esume' })
       vim.keymap.set('n', '<leader>/.', builtin.oldfiles, { desc = 'Search Recent Files ("." for repeat)' })
       vim.keymap.set('n', '<leader>/b', builtin.buffers, { desc = 'Search existing [b]uffers' })
 
@@ -1100,23 +1100,23 @@ require('lazy').setup({
       -- Custom indent-blankline rainbow colors (previously configured a second
       -- time at the bottom of the file; consolidated here).
       local highlight = {
-        'RainbowRed',
-        'RainbowOrange',
-        'RainbowYellow',
         'RainbowGreen',
         'RainbowBlue',
         'RainbowViolet',
+        'RainbowRed',
+        'RainbowOrange',
+        'RainbowYellow',
       }
       local hooks = require 'ibl.hooks'
       -- create the highlight groups in the highlight setup hook, so they are reset
       -- every time the colorscheme changes
       hooks.register(hooks.type.HIGHLIGHT_SETUP, function()
+        vim.api.nvim_set_hl(0, 'RainbowBlue', { fg = '#76CCE0' })
+        vim.api.nvim_set_hl(0, 'RainbowViolet', { fg = '#B39DF3' })
         vim.api.nvim_set_hl(0, 'RainbowRed', { fg = '#FC5D7C' })
         vim.api.nvim_set_hl(0, 'RainbowOrange', { fg = '#F39660' })
         vim.api.nvim_set_hl(0, 'RainbowYellow', { fg = '#E7C664' })
         vim.api.nvim_set_hl(0, 'RainbowGreen', { fg = '#9ED072' })
-        vim.api.nvim_set_hl(0, 'RainbowBlue', { fg = '#76CCE0' })
-        vim.api.nvim_set_hl(0, 'RainbowViolet', { fg = '#B39DF3' })
       end)
       require('ibl').setup { indent = { highlight = highlight } }
     end,
@@ -1270,27 +1270,41 @@ require('lazy').setup({
       },
     },
   },
-}, {
-  ui = {
-    -- If you are using a Nerd Font: set icons to an empty table which will use the
-    -- default lazy.nvim defined Nerd Font icons, otherwise define a unicode icons table
-    icons = vim.g.have_nerd_font and {} or {
-      cmd = '⌘',
-      config = '🛠',
-      event = '📅',
-      ft = '📂',
-      init = '⚙',
-      keys = '🗝',
-      plugin = '🔌',
-      runtime = '💻',
-      require = '🌙',
-      source = '📄',
-      start = '🚀',
-      task = '📌',
-      lazy = '💤 ',
+  {
+    ui = {
+      -- If you are using a Nerd Font: set icons to an empty table which will use the
+      -- default lazy.nvim defined Nerd Font icons, otherwise define a unicode icons table
+      icons = vim.g.have_nerd_font and {} or {
+        cmd = '⌘',
+        config = '🛠',
+        event = '📅',
+        ft = '📂',
+        init = '⚙',
+        keys = '🗝',
+        plugin = '🔌',
+        runtime = '💻',
+        require = '🌙',
+        source = '📄',
+        start = '🚀',
+        task = '📌',
+        lazy = '💤 ',
+      },
     },
   },
-})
+  {
+    'MagicDuck/grug-far.nvim',
+    -- Note (lazy loading): grug-far.lua defers all it's requires so it's lazy by default
+    -- additional lazy config to defer loading is not really needed...
+    config = function()
+      -- optional setup call to override plugin options
+      -- alternatively you can set options with vim.g.grug_far = { ... }
+      require('grug-far').setup {}
+    end,
+    keys = {
+      { '<leader>/r', '<cmd>GrugFar<cr>', desc = 'Grug Search [R]eplace' },
+    },
+  },
+}
 
 -- open neo-tree on startup
 vim.cmd 'Neotree reveal'
