@@ -443,6 +443,7 @@ require('lazy').setup {
       vim.keymap.set('n', '<leader>/R', builtin.resume, { desc = 'Search [R]esume' })
       vim.keymap.set('n', '<leader>/.', builtin.oldfiles, { desc = 'Search Recent Files ("." for repeat)' })
       vim.keymap.set('n', '<leader>/b', builtin.buffers, { desc = 'Search existing [b]uffers' })
+      vim.keymap.set('x', '<leader>/rv', '<cmd>GrugFarWithin<cr>', { desc = 'Grug Search [R]eplace [V]isually' })
 
       -- Slightly advanced example of overriding default behavior and theme
       vim.keymap.set('n', '<leader>//', function()
@@ -1269,8 +1270,6 @@ require('lazy').setup {
         desc = 'Quickfix List (Trouble)',
       },
     },
-  },
-  {
     ui = {
       -- If you are using a Nerd Font: set icons to an empty table which will use the
       -- default lazy.nvim defined Nerd Font icons, otherwise define a unicode icons table
@@ -1301,7 +1300,19 @@ require('lazy').setup {
       require('grug-far').setup {}
     end,
     keys = {
-      { '<leader>/r', '<cmd>GrugFar<cr>', desc = 'Grug Search [R]eplace' },
+      { '<leader>/ra', '<cmd>GrugFar<cr>', desc = 'Grug Search [R]eplace [A]ll' },
+    },
+  },
+  {
+    'iamcco/markdown-preview.nvim',
+    cmd = { 'MarkdownPreviewToggle', 'MarkdownPreview', 'MarkdownPreviewStop' },
+    build = 'cd app && yarn install',
+    init = function()
+      vim.g.mkdp_filetypes = { 'markdown' }
+    end,
+    ft = { 'markdown' },
+    keys = {
+      { '<leader>mp', '<cmd>MarkdownPreviewToggle<cr>', desc = '[M]arkdown [P]review' },
     },
   },
 }
@@ -1321,3 +1332,12 @@ vim.keymap.set('n', '<leader>nt', ':Neotree toggle<CR>', { desc = '[N]eotree [T]
 -- Codelens doesn't seem to be working as well as the Trouble plugin, so I disabled it for now. It may be useful in the future.
 vim.lsp.codelens.enable(true)
 -- vim.keymap.set('n', '<leader>cl', vim.lsp.codelens.run, { desc = 'Run [c]ode[l]ens Action' })
+
+-- grug buffer search and replace in buffer
+vim.keymap.set('n', '<leader>/rb', function()
+  require('grug-far').open {
+    prefills = {
+      paths = vim.fn.expand '%',
+    },
+  }
+end, { desc = 'Search and [R]eplace [B]uffer' })
