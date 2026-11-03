@@ -65,7 +65,9 @@ vim.o.winborder = 'rounded'
 vim.o.number = true
 -- You can also add relative line numbers, to help with jumping.
 --  Experiment for yourself to see if you like it!
--- vim.o.relativenumber = true
+-- Turn off with ":set norelativenumber"
+vim.o.relativenumber = true
+vim.o.statuscolumn = '%C%s %{v:lnum} │ %{v:relnum} '
 
 -- Enable mouse mode, can be useful for resizing splits for example!
 vim.o.mouse = 'a'
@@ -133,9 +135,6 @@ vim.o.scrolloff = 5
 -- instead raise a dialog asking if you wish to save the current file(s)
 -- See `:help 'confirm'`
 vim.o.confirm = true
-
--- Show relative line numbers. Turn off with ":set norelativenumber"
-vim.wo.relativenumber = true
 
 -- [[ Basic Keymaps ]]
 --  See `:help vim.keymap.set()`
